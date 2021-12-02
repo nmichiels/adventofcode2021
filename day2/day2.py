@@ -22,7 +22,7 @@ for line in lines:
 print('Result part 1: ', hor * depth)
 
     
-# part 1
+# part 2
 hor, vert, depth, aim = 0, 0, 0, 0
 for line in lines:
     (dir, count) = line.split(' ')
