@@ -17,7 +17,22 @@ def init_occurences():
     for c in ascii_uppercase:
         occurences[c] = 0
     return occurences
-        
+    
+def sum_occurences(occurences_a, occurences_b):
+    for c in ascii_uppercase:
+        occurences_a[c] += occurences_b[c]
+    return occurences_a
+
+def build_cache(rules):
+    cache = {}
+    for rule in rules:
+        pol = grow_polymer(rule, rules, steps = 20)
+        occurences = init_occurences()
+        for char in pol:
+            occurences[char] += 1
+        cache[rule] = (pol, occurences)
+    return cache
+    
 def grow_polymer(polymer, rules, steps=1):
     result = polymer
     for step in range(steps):
@@ -43,20 +58,9 @@ def part1(template, rules):
     
     return max_occurence[1] - min_occurence[1]
 
-def build_cache(rules):
-    cache = {}
-    for rule in rules:
-        print(rule)
-        pol = grow_polymer(rule, rules, steps = 20)
-        occurences = init_occurences()
-        for char in pol:
-            occurences[char] += 1
-        cache[rule] = (pol, occurences)
-    return cache
+
         
 def part2(template, rules):
-
-
     #build cache of rules for depth 20
     cache = build_cache(rules)
     
@@ -64,15 +68,17 @@ def part2(template, rules):
     
     total_occurences = init_occurences()
     for i in range(len(polymer)-1):
-        test = cache[polymer[i]+polymer[i+1]][1]
-        # todo sum all occurences and take care of the duplicates of the first and last character
+        sub_polymer = cache[polymer[i]+polymer[i+1]]
+        total_occurences = sum_occurences(total_occurences, sub_polymer[1])
+        
+        # remove last letter from occurences to ignore doubles, except for the last pair
+        if i < len(polymer)-2:
+            total_occurences[sub_polymer[0][-1]] -= 1
 
-    occurences = [(x,polymer.count(x)) for x in set(polymer)]
-
-    max_occurence = max(occurences, key = lambda i : i[1])
-    min_occurence = min(occurences, key = lambda i : i[1])
-    
-    print( max_occurence[1] - min_occurence[1])
+    total_occurences = {k: v for k, v in total_occurences.items() if v} # remove zeros
+    max_occurence = max(total_occurences.values())
+    min_occurence = min(total_occurences.values())
+    return max_occurence - min_occurence
     
 
 
@@ -80,7 +86,6 @@ def part2(template, rules):
 
 
 print('Result part 1: ', part1(template, rules))
-
 print('Result part 2 ', part2(template, rules))
 
 
