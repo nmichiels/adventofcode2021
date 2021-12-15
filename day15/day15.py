@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+from queue import PriorityQueue
 
 # https://adventofcode.com/2021/day/15
 
@@ -10,9 +11,7 @@ cave = np.asarray([list(line.rstrip()) for line in file.readlines()], dtype=np.i
 neighbors = [(-1,0),(0,-1), (0,1),(1,0)]
 
 
-
 def find_path_dijkstra(cave):
-    from queue import PriorityQueue
     queue = PriorityQueue()
     queue.put((0,(0,0)))
     cost_matrix = np.ones(cave.shape, dtype=np.int16) * sys.maxsize
@@ -22,7 +21,7 @@ def find_path_dijkstra(cave):
     
     while not queue.empty():
         (distance, (row, col)) = queue.get()
-
+        
         visited[row,col] = 1
             
         for neighbor in neighbors:
@@ -43,8 +42,7 @@ def find_path_dijkstra(cave):
     return cost_matrix
 
 def tile_cave(cave, times = 5):
-    # large_cave = np.tile(cave, (times,times))
-    
+
     def make_tile(cave, times, axis):
         tiles = []
         for i in range(times):
@@ -55,12 +53,9 @@ def tile_cave(cave, times = 5):
     
     tile = make_tile(cave, times, axis=1)
     large_cave = make_tile(tile, times, axis=0)
-
     return large_cave
-    
-    
 
-# find_path(0, 0, cave, 0, [])
+
 cost_matrix = find_path_dijkstra(cave)
 print('Result part 1: ', cost_matrix[-1,-1])
 
