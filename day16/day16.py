@@ -1,4 +1,4 @@
-
+import numpy as np
 # https://adventofcode.com/2021/day/16
 
 file = open('input.txt', 'r')
@@ -88,7 +88,41 @@ def part_1(packets):
     return count
 
 
+def evaluate(packet):
+    if packet.value is None:
+        for child in packet.children:
+            evaluate(child)
+        
+        
+        if packet.type_id == 0:
+            packet.value = sum([child.value for child in packet.children])
+        if packet.type_id == 1:
+            packet.value = np.prod([child.value for child in packet.children])
+        if packet.type_id == 2:
+            packet.value = min([child.value for child in packet.children])
+        if packet.type_id == 3:
+            packet.value = max([child.value for child in packet.children])
+        if packet.type_id == 5:
+            if packet.children[0].value > packet.children[1].value:
+                packet.value = 1
+            else:
+                packet.value = 0
+        if packet.type_id == 6:
+            if packet.children[0].value < packet.children[1].value:
+                packet.value = 1
+            else:
+                packet.value = 0
+        if packet.type_id == 7:
+            if packet.children[0].value == packet.children[1].value:
+                packet.value = 1
+            else:
+                packet.value = 0
+    return packet.value
+
 packets = decode_packets(transmission)
-#print_packet_hierarchy(packets, 1)
+
 
 print('Result part 1: ', part_1(packets))
+print('Result part 2: ', evaluate(packets[0]))
+print_packet_hierarchy(packets, 1)
+
