@@ -1,4 +1,3 @@
-import numpy as np
 # https://adventofcode.com/2021/day/16
 
 file = open('input.txt', 'r')
@@ -14,11 +13,19 @@ class Packet(object):
     def __str__(self):
         return "Packet - version: " + str(self.version) + ", type id: " +  str(self.type_id) + ", value: " + str(self.value)
     
-        
+# prints the hierachy of the packets in a formatted fashion, for example:
+# |---Packet - version: 6, type id: 0, value: 46
+      # |---Packet - version: 0, type id: 0, value: 21
+            # |---Packet - version: 0, type id: 4, value: 10
+            # |---Packet - version: 6, type id: 4, value: 11
+      # |---Packet - version: 4, type id: 0, value: 25
+            # |---Packet - version: 7, type id: 4, value: 12
+            # |---Packet - version: 0, type id: 4, value: 13
 def print_packet_hierarchy(packets, indent = 0):
     for packet in packets:
         print('      '*(indent-1) + '|---' + str(packet))
         print_packet_hierarchy(packet.children, indent+1)
+        
         
 def bits2int(bits):
     out = 0
@@ -60,6 +67,7 @@ def decode_next_packet(transmission):
             packet.children = decode_packets(block)
             idx += length
             transmission = transmission[idx:]
+            
         else:
             # next 11 bits is the number of subpackets immediately contained by this packet
             num_sub_packets = bits2int(transmission[idx:idx+11])
@@ -68,6 +76,7 @@ def decode_next_packet(transmission):
             for i in range(num_sub_packets):
                 child, transmission = decode_next_packet(transmission)
                 packet.children.append(child)
+                
     return packet, transmission
 
 def decode_packets(transmission):
@@ -80,11 +89,11 @@ def decode_packets(transmission):
     return packets
 
 
-def part_1(packets):
+def count_versions(packets):
     count = 0
     for packet in packets:
         count += packet.version
-        count += part_1(packet.children)
+        count += count_versions(packet.children)
     return count
 
 
@@ -93,11 +102,12 @@ def evaluate(packet):
         for child in packet.children:
             evaluate(child)
         
-        
         if packet.type_id == 0:
             packet.value = sum([child.value for child in packet.children])
         if packet.type_id == 1:
-            packet.value = np.prod([child.value for child in packet.children])
+            packet.value = 1
+            for child in packet.children:
+                packet.value *= child.value
         if packet.type_id == 2:
             packet.value = min([child.value for child in packet.children])
         if packet.type_id == 3:
@@ -119,10 +129,9 @@ def evaluate(packet):
                 packet.value = 0
     return packet.value
 
+
 packets = decode_packets(transmission)
+#print_packet_hierarchy(packets, 1)
 
-
-print('Result part 1: ', part_1(packets))
+print('Result part 1: ', count_versions(packets))
 print('Result part 2: ', evaluate(packets[0]))
-print_packet_hierarchy(packets, 1)
-
