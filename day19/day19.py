@@ -100,28 +100,52 @@ def check_alignment(map, target, translate):
     else:
         return False
          
+         
+def add_points(reference, target, rotation, translation):
+    target_aligned = np.transpose(np.matmul(rotation, np.transpose(target))).astype(dtype=np.int16) - translation
+    
+    for point in target_aligned:
+        reference[(point[0],point[1],point[2])] = 1
+
 # print(np.matmul(scanners[0],possible_rotations[0]))
 # print(np.matmul(scanners[0],possible_rotations[1]))
 
 # print([i for i in range(len(scanners[0]))])
 
-def align(reference, target):
-    map = {}
-    for point in reference:
-        map[(point[0],point[1],point[2])] = 1
+def align(map, target):
+    
         
     for rotation in possible_rotations:
         # print(rotation)
 
-        target_rotated = np.transpose(np.matmul(rotation, np.transpose(target))).astype(dtype=np.int)
+        target_rotated = np.transpose(np.matmul(rotation, np.transpose(target))).astype(dtype=np.int16)
       
         # for each point in rotated target, check if it aligns with one of the reference points
         for target_point in target_rotated:
-            for reference_point in reference:
-                translate = target_point-reference_point
+            for reference_point in map:
+                translate = target_point-np.asarray([reference_point[0],reference_point[1],reference_point[2]], dtype=np.int16)
                 if check_alignment(map, target_rotated, translate):
-                    print('alignment found: ', translate, rotation)
+                    return True ,translate, rotation
         # return
+    return False, None, None
     
+reference_map = {}
+for point in scanners[0]:
+    reference_map[(point[0],point[1],point[2])] = 1
 
-align(scanners[0], scanners[1])
+scanners = scanners[1:]
+while True:
+    print(len(scanners), len(reference_map))
+    scanner = scanners.pop(0)
+    aligned, translation, rotation = align(reference_map, scanner)
+    if aligned is True:
+        print(translation)
+        add_points(reference_map, scanner, rotation, translation)
+    else:
+        scanners.append(scanner)
+      
+    if len(scanners) == 0:
+        break
+    
+        
+print('Result part 1: ', len(reference_map))
